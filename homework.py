@@ -28,8 +28,7 @@ class InfoMessage:
                 f'Длительность: {self.duration:.3f} ч.; '
                 f'Дистанция: {self.distance:.3f} км; '
                 f'Ср. скорость: {self.speed:.3f} км/ч; '
-                f'Потрачено ккал: {self.calories:.3f}.'
-                )
+                f'Потрачено ккал: {self.calories:.3f}.')
 
 
 class Training:
@@ -66,7 +65,7 @@ class Training:
 
 
 class Running(Training):
-    """Workaut: running."""
+    """Workout: running."""
 
     def get_spent_calories(self) -> float:
         cal_coef1 = 18
@@ -120,14 +119,16 @@ class Swimming(Training):
 
     def get_mean_speed(self) -> float:
         """Get average speed (km/h)."""
-        speed = self.length_pool * self.count_pool / Training.M_IN_KM / self.duration
+        speed = (self.length_pool * self.count_pool
+                 / Training.M_IN_KM / self.duration)
         return speed
 
     def get_spent_calories(self) -> float:
         """Get spent calories (kcal)."""
         cal_coef1 = 1.1
         cal_coef2 = 2
-        calories = (self.get_mean_speed() + cal_coef1) * cal_coef2 * self.weight
+        calories = ((self.get_mean_speed() + cal_coef1)
+                    * cal_coef2 * self.weight)
         return calories
 
 
@@ -137,7 +138,7 @@ def read_package(type_of_workout: str, arguments: list):
         'SWM': Swimming,
         'RUN': Running,
         'WLK': SportsWalking
-        }
+    }
     for code, training_class in code_class.items():
         if code == type_of_workout:
             return training_class(*arguments)
@@ -155,7 +156,7 @@ if __name__ == '__main__':
         ('SWM', [720, 1, 80, 25, 40]),
         ('RUN', [15000, 1, 75]),
         ('WLK', [9000, 1, 75, 180]),
-        ]
+    ]
 
     for workout_type, data in packages:
         training = read_package(workout_type, data)
