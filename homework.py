@@ -4,31 +4,28 @@ Fitness tracker data processing module.
 Сohort #42
 Sprint #2 final project.
 """
+from dataclasses import dataclass, asdict
+from typing import Dict, Type
 
 
+@dataclass
 class InfoMessage:
     """Creating an info message about workout."""
+    training_type: str
+    duration: float
+    distance: float
+    speed: float
+    calories: float
 
-    def __init__(self,
-                 training_type: str,
-                 duration: float,
-                 distance: float,
-                 speed: float,
-                 calories: float) -> None:
-        """Inits InfoMessage instance"""
-        self.training_type = training_type
-        self.duration = duration
-        self.distance = distance
-        self.speed = speed
-        self.calories = calories
+    MSG_TXT = ('Тип тренировки: {training_type}; '
+               'Длительность: {duration:.3f} ч.; '
+               'Дистанция: {distance:.3f} км; '
+               'Ср. скорость: {speed:.3f} км/ч; '
+               'Потрачено ккал: {calories:.3f}.')
 
     def get_message(self) -> str:
         """Message printing."""
-        return (f'Тип тренировки: {self.training_type}; '
-                f'Длительность: {self.duration:.3f} ч.; '
-                f'Дистанция: {self.distance:.3f} км; '
-                f'Ср. скорость: {self.speed:.3f} км/ч; '
-                f'Потрачено ккал: {self.calories:.3f}.')
+        return self.MSG_TXT.format(**asdict(self))
 
 
 class Training:
@@ -36,6 +33,7 @@ class Training:
 
     LEN_STEP: float = 0.65
     M_IN_KM: int = 1000
+    MIN_IN_HOUR = 60
 
     def __init__(self,
                  action: int,
@@ -56,6 +54,7 @@ class Training:
 
     def get_spent_calories(self) -> float:
         """Get spent calories (kcal)."""
+        raise Warning("Abstract method must be redefined")
 
     def show_training_info(self) -> InfoMessage:
         """Get message about workout session."""
@@ -67,16 +66,22 @@ class Training:
 class Running(Training):
     """Workout: running."""
 
+    CAL_COEF1 = 18
+    CAL_COEF2 = 20
+
     def get_spent_calories(self) -> float:
-        cal_coef1 = 18
-        cal_coef2 = 20
-        calories = ((cal_coef1 * self.get_mean_speed() - cal_coef2)
-                    * self.weight / Training.M_IN_KM * self.duration * 60)
+        """Get spent calories (kcal)."""
+        calories = ((self.CAL_COEF1 * self.get_mean_speed() - self.CAL_COEF2)
+                    * self.weight / Training.M_IN_KM
+                    * self.duration * self.MIN_IN_HOUR)
         return calories
 
 
 class SportsWalking(Training):
     """Workout: walking."""
+
+    CAL_COEF3 = 0.035
+    CAL_COEF4 = 0.029
 
     def __init__(self,
                  action: int,
@@ -89,11 +94,10 @@ class SportsWalking(Training):
 
     def get_spent_calories(self) -> float:
         """Get spent calories (kcal)."""
-        cal_coef1 = 0.035
-        cal_coef2 = 0.029
-        calories = (cal_coef1 * self.weight
+        calories = ((self.CAL_COEF3 * self.weight
                     + (self.get_mean_speed()**2 // self.height)
-                    * cal_coef2 * self.weight) * self.duration * 60
+                    * self.CAL_COEF4 * self.weight)
+                    * self.duration * self.MIN_IN_HOUR)
         return calories
 
 
@@ -101,6 +105,8 @@ class Swimming(Training):
     """Workout: swimming."""
 
     LEN_STEP: float = 1.38
+    CAL_COEF5 = 1.1
+    CAL_COEF6 = 2
 
     def __init__(self,
                  action: int,
@@ -125,24 +131,24 @@ class Swimming(Training):
 
     def get_spent_calories(self) -> float:
         """Get spent calories (kcal)."""
-        cal_coef1 = 1.1
-        cal_coef2 = 2
-        calories = ((self.get_mean_speed() + cal_coef1)
-                    * cal_coef2 * self.weight)
+
+        calories = ((self.get_mean_speed() + self.CAL_COEF5)
+                    * self.CAL_COEF6 * self.weight)
         return calories
 
 
 def read_package(type_of_workout: str, arguments: list):
     """Get sensors data."""
-    code_class = {
+    workout_type_codes: Dict[str, Type[Training]] = {
         'SWM': Swimming,
         'RUN': Running,
         'WLK': SportsWalking
     }
-    for code, training_class in code_class.items():
-        if code == type_of_workout:
-            return training_class(*arguments)
-    return print('data not found')
+    try:
+        return workout_type_codes[type_of_workout](*arguments)
+    except KeyError:
+        return print('Incorrect data getting from workout_type_codes dict '
+                     'or from the sensors')
 
 
 def main(training_instance: Training) -> None:
@@ -159,5 +165,5 @@ if __name__ == '__main__':
     ]
 
     for workout_type, data in packages:
-        training = read_package(workout_type, data)
+        training: Training = read_package(workout_type, data)
         main(training)
