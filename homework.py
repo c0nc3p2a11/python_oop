@@ -54,7 +54,9 @@ class Training:
 
     def get_spent_calories(self) -> float:
         """Get spent calories (kcal)."""
-        raise Warning("Abstract method must be redefined")
+        raise NotImplementedError(f'You have to redefine function '
+                                  f'get_spent_calories in '
+                                  f'{self.__class__.__name__}')
 
     def show_training_info(self) -> InfoMessage:
         """Get message about workout session."""
@@ -144,11 +146,10 @@ def read_package(type_of_workout: str, arguments: list):
         'RUN': Running,
         'WLK': SportsWalking
     }
-    try:
+    if type_of_workout in workout_type_codes:
         return workout_type_codes[type_of_workout](*arguments)
-    except KeyError:
-        return print('Incorrect data getting from workout_type_codes dict '
-                     'or from the sensors')
+    raise ValueError(f'Key {type_of_workout} '
+                     f'not in {[*workout_type_codes.keys()]}')
 
 
 def main(training_instance: Training) -> None:
