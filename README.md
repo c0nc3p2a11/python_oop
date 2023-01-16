@@ -1,1 +1,1 @@
-# Модуль фитнес-трекера
+# OOP learning project
